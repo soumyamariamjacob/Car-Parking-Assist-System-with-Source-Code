@@ -1,0 +1,68 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Define pins for Ultrasonic Sensor
+const int trigPin = 9;
+const int echoPin = 10;
+
+// Define pin for Buzzer
+const int buzzerPin = 8;
+
+// Initialize the LCD, set the LCD address to 0x27 for a 16 chars and 2 line display
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  // Start the serial communication
+  Serial.begin(9600);
+  
+  // Set the Ultrasonic Sensor pins as Input and Output
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  
+  // Set the Buzzer pin as Output
+  pinMode(buzzerPin, OUTPUT);
+  
+  // Initialize the LCD
+  lcd.begin();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print("Parking Assist");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  // Clear the trigPin by setting it LOW
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  
+  // Set the trigPin HIGH for 10 microseconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Read the echoPin, return the sound wave travel time in microseconds
+  long duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate the distance
+  int distance = duration * 0.034 / 2; // Convert to cm
+  
+  // Display distance on LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Distance: ");
+  lcd.print(distance);
+  lcd.print(" cm   ");
+  
+  // Check distance and activate buzzer if too close
+  if (distance <= 30 && distance > 0) { // Trigger buzzer if distance is less than or equal to 30 cm
+    digitalWrite(buzzerPin, HIGH);
+    lcd.setCursor(0, 1);
+    lcd.print("Too Close! Stop!");
+  } else {
+    digitalWrite(buzzerPin, LOW);
+    lcd.setCursor(0, 1);
+    lcd.print("                     "); // Clear the second line
+  }
+  
+  delay(200);
+}
